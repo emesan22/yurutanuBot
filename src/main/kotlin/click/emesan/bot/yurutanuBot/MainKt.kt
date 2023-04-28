@@ -48,13 +48,17 @@ class BotClient : ListenerAdapter() {
     }
 
     override fun onSlashCommandInteraction(event: SlashCommandInteractionEvent) {
-        if (event.name == "help") {
-            event.reply("実装準備中").setEphemeral(true).queue()
-        } else if (event.name == "author") {
-            event.reply("made by emesan").queue()
-        } else if (event.name == "say") {
-            val option = event.getOption("msg")!!
-            event.reply(option.asString).queue()
+        when (event.name) {
+            "help" -> {
+                event.reply("実装準備中").setEphemeral(true).queue()
+            }
+            "author" -> {
+                event.reply("made by emesan").queue()
+            }
+            "say" -> {
+                val option = event.getOption("msg")!!
+                event.reply(option.asString).queue()
+            }
         }
     }
 
