@@ -1,11 +1,11 @@
 plugins {
     kotlin("jvm") version "1.8.0"
-    application /*追記*/
+    application
     id("com.github.johnrengelman.shadow") version "7.0.0"
 }
 
 group = "click.emesan.bot"
-version = "1.0-SNAPSHOT"
+version = "1.0"
 
 repositories {
     mavenCentral()
@@ -13,11 +13,16 @@ repositories {
 }
 
 dependencies {
+    implementation(kotlin("stdlib"))
     implementation("net.dv8tion:JDA:5.0.0-beta.8")
 }
 
-tasks.test {
-    useJUnitPlatform()
+tasks.register("stage"){
+    dependsOn("clean","shadowJar")
+}
+
+tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>{
+    archiveFileName.set("bot.jar")
 }
 
 application {
