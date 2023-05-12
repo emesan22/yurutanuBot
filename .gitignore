@@ -2,3 +2,6 @@
 /.gradle/
 /.idea/
 /build/
+
+#トークンを無視
+/src/main/resources/TOKEN.txt

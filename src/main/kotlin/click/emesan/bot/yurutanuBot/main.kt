@@ -9,17 +9,19 @@ import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
 import net.dv8tion.jda.api.requests.GatewayIntent
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
+import java.io.File
 
 class BotClient {
     private lateinit var jda: JDA
+    private val logger: Logger = LogManager.getLogger(BotClient::class.java)
 
     companion object {
         private const val GUILD_ID = "1099656854784712805"
     }
 
     fun main(token: String) { //トークンを使ってBotを起動する部分
-        BotListener().yFrame()
-
         jda = JDABuilder.createLight(token, GatewayIntent.GUILD_MESSAGES, GatewayIntent.MESSAGE_CONTENT)
             .setRawEventsEnabled(true)
             .addEventListeners(BotListener())
@@ -30,27 +32,35 @@ class BotClient {
 
         val guild = jda.getGuildById(GUILD_ID)!!
 
-        /*
-        * TODO:
-        *   - make kick command
-        *   - make ban command
-        *   - make GUI Panel
+        // 登録するコマンドを作成
+
+        /* 説明
+        * /キーワード - コマンド名
+        * <> - 必修なオプション
+        * [] - オプション
         */
 
-        // 登録するコマンドを作成
         //一般コマンド
+        // /help - 説明
         val thisHelpCommand = Commands.slash("help", "このBOTの説明を表示します。")
-        val thisAuthorCommand = Commands.slash("author", "作者を表示します。")
+
+        // /say <content> - BOTにオプションで書いたものを言わせる。
         val sayCommand = Commands.slash("say", "打った文字をbotに言わせます。")
             .addOption(OptionType.STRING, "content", "言わせる文字を設定", true)
+
+        // /roll <d0> - d0で書いた数字を最大値としてダイスを振る
         val rollCommand = Commands.slash("roll", "ダイスを振ります。")
             .addOption(OptionType.INTEGER, "d0", "最大値", true)
 
         //モデレーターコマンド
+        // /announce <content> <to> - 通常のチャットでアナウンスをします。 <content>は内容 <to>はメンションをするロールを選びます。
         val announceCommand = Commands.slash("announce", "アナウンスをします。")
             .addOption(OptionType.STRING, "content", "アナウンスをする内容", true)
             .addOption(OptionType.ROLE, "to", "メンションするロール上に付きます", true)
             .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MESSAGE_MANAGE))
+
+        // /announce-embed <title> <description> <to> [image] - embedでアナウンスをします。
+        // <title>はタイトル <description>で内容を <to>はメンションをするロールを選びます。 [image]は画像を出します。
         val embedAnnounceCommand = Commands.slash("announce-embed", "Embedでアナウンスします。")
             .addOptions(
                 OptionData(OptionType.STRING, "title", "タイトル", true),
@@ -59,39 +69,51 @@ class BotClient {
                 OptionData(OptionType.STRING, "image", "画像を挿入します。URLで入力してください", false)
             )
             .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MESSAGE_MANAGE))
+
+        //実装予定
         val kickCommand = Commands.slash("kick", "メンバーをキックします")
             .addOptions(
                 OptionData(OptionType.USER, "user", "kickするメンバー", true),
                 OptionData(OptionType.STRING, "reason", "キックする理由(DMに送られます。)", true)
             )
             .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.KICK_MEMBERS))
+
+        //実装予定
         val banCommand = Commands.slash("ban", "メンバーを期限付きでBANします。")
             .addOptions(
                 OptionData(OptionType.USER, "user", "BANをするメンバー", true),
                 OptionData(OptionType.STRING, "reason", "BANする理由(DMに送られます。)", true)
             )
             .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.BAN_MEMBERS))
+        logger.info("すべてのコマンドの定義を終わりました。")
 
         guild.updateCommands().queue() //コマンドを一時リセット
+        logger.info("コマンドをリセットしました。")
 
         // コマンドを登録
         guild.updateCommands()
             .addCommands(
                 thisHelpCommand,
-                thisAuthorCommand,
                 sayCommand,
                 announceCommand,
                 embedAnnounceCommand,
                 kickCommand,
                 banCommand,
                 rollCommand
-            )
-            .queue()
+            ).queue()
+        logger.info("コマンドをセットしました。")
     }
 }
 
+fun readTokenFromFile(filePath: String): String {
+    val tokenFile = File(filePath)
+    return tokenFile.readText().trim()
+}
+
 fun main() {
+    val logger: Logger = LogManager.getLogger(BotClient::class.java)
     val bot = BotClient()
-    val token = "BOT_TOKEN"
+    val token = readTokenFromFile("src/main/resources/TOKEN.txt")
+    logger.info("トークンの設定完了")
     bot.main(token)
 }
