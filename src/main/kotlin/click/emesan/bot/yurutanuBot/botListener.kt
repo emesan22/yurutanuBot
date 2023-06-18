@@ -2,6 +2,7 @@ package click.emesan.bot.yurutanuBot
 
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.JDA
+import net.dv8tion.jda.api.entities.emoji.Emoji
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.events.session.ReadyEvent
@@ -86,50 +87,62 @@ class BotListener : ListenerAdapter() {
     //メッセージ反応
     override fun onMessageReceived(event: MessageReceivedEvent) {
         if (!event.author.isBot) {
-            if (event.message.contentDisplay.startsWith("ぬ")) {
-                event.channel.sendMessage("ぬ").queue()
-                val authorId = event.message.author.id
-                points[authorId] = points.getOrDefault(authorId, 0) + 1
-                val range = (1..5)
-                when (range.random()) {
-                    1 -> { //1だったら「ぬぬ~」と送信する
-                        event.channel.sendMessage("ぬぬ~").queue()
-                    }
+            tubuyaki(event)
+            replayNu(event)
+        }
+    }
 
-                    2 -> { //2だったら「ぬ!」と送信する
-                        event.channel.sendMessage("ぬ!").queue()
-                    }
+    private fun tubuyaki(event: MessageReceivedEvent){
+        if (event.channel.id == "1119928574825205820"){
+            event.message.addReaction(Emoji.fromUnicode("💬")).queue()
+            event.message.addReaction(Emoji.fromUnicode("❤️")).queue()
+        }
+    }
 
-                    3 -> { //3だったら「ぬ?」と送信する
-                        event.channel.sendMessage("ぬ?").queue()
-                    }
+    private fun replayNu(event: MessageReceivedEvent){
+        if (event.message.contentDisplay.startsWith("ぬ")) {
+            event.channel.sendMessage("ぬ").queue()
+            val authorId = event.message.author.id
+            points[authorId] = points.getOrDefault(authorId, 0) + 1
+            val range = (1..5)
+            when (range.random()) {
+                1 -> { //1だったら「ぬぬ~」と送信する
+                    event.channel.sendMessage("ぬぬ~").queue()
+                }
 
-                    4 -> { //4だったら「ぬ! ぬぬ」と送信する
-                        event.channel.sendMessage("ぬ!ぬぬ").queue()
-                    }
+                2 -> { //2だったら「ぬ!」と送信する
+                    event.channel.sendMessage("ぬ!").queue()
+                }
 
-                    5 -> { //5だったら「ぬ~ぬ~」と送信する
-                        event.channel.sendMessage("ぬ~ぬ~").queue()
-                    }
+                3 -> { //3だったら「ぬ?」と送信する
+                    event.channel.sendMessage("ぬ?").queue()
+                }
+
+                4 -> { //4だったら「ぬ! ぬぬ」と送信する
+                    event.channel.sendMessage("ぬ!ぬぬ").queue()
+                }
+
+                5 -> { //5だったら「ぬ~ぬ~」と送信する
+                    event.channel.sendMessage("ぬ~ぬ~").queue()
                 }
             }
-            if (event.message.contentDisplay.startsWithAnyOf(listOf(":nu:", ":snu:"))) {
-                event.channel.sendMessage("<:nu:1101830335718752261>").queue()
-            }
-            if (event.message.contentDisplay.startsWith("こん") && !event.message.contentDisplay.startsWith("こんばんは")) {
-                event.channel.sendMessage("こんにちは~").queue()
-                val authorId = event.message.author.id
-                points[authorId] = points.getOrDefault(authorId, 0) + 1
-            }
-            if (event.message.contentDisplay.startsWith("おは")) {
-                event.channel.sendMessage("おはよう!").queue()
-            }
-            if (event.message.contentDisplay.startsWith("こんばんは")) {
-                event.channel.sendMessage("こんばんは~").queue()
-            }
-            if (event.message.contentDisplay.startsWith("おやすみ")) {
-                event.channel.sendMessage("おやすみ~ Good night!").queue()
-            }
+        }
+        if (event.message.contentDisplay.startsWithAnyOf(listOf(":nu:", ":snu:"))) {
+            event.channel.sendMessage("<:nu:1101830335718752261>").queue()
+        }
+        if (event.message.contentDisplay.startsWith("こん") && !event.message.contentDisplay.startsWith("こんばんは")) {
+            event.channel.sendMessage("こんにちは~").queue()
+            val authorId = event.message.author.id
+            points[authorId] = points.getOrDefault(authorId, 0) + 1
+        }
+        if (event.message.contentDisplay.startsWith("おは")) {
+            event.channel.sendMessage("おはよう!").queue()
+        }
+        if (event.message.contentDisplay.startsWith("こんばんは")) {
+            event.channel.sendMessage("こんばんは~").queue()
+        }
+        if (event.message.contentDisplay.startsWith("おやすみ")) {
+            event.channel.sendMessage("おやすみ~ Good night!").queue()
         }
     }
 
