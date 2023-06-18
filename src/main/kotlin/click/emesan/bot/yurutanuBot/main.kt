@@ -121,5 +121,5 @@ fun main() {
     //val token = readTokenFromFile("src/main/resources/TOKEN.txt")
     val token = System.getenv("botToken")
     logger.info("トークンの設定完了")
-    bot.main("MTExOTkzMzQ5MDQ0ODg0MjgwMg.GXqyRa.aoXFZcbOybD87SABhBR-iP5o80gCeijn2wt7qI")
+    bot.main("token")
 }
