@@ -1,45 +1,135 @@
 package click.emesan.bot.yurutanuBot
 
 import net.dv8tion.jda.api.EmbedBuilder
+import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.events.session.ReadyEvent
+import net.dv8tion.jda.api.events.session.ShutdownEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
+import org.json.JSONObject
 import java.awt.Color
+import java.io.File
+import java.util.*
 import kotlin.system.exitProcess
 
 class BotListener : ListenerAdapter() {
     private val logger: Logger = LogManager.getLogger(BotClient::class.java)
+    private val points: HashMap<String, Int> = HashMap()
+    private val dataFile: File = File("src/main/resources/point.json")
 
-    //BOTが起動したら起動と出力
-    override fun onReady(event: ReadyEvent) {
-        logger.info("き ど う")
+    init {
+        loadData()
+    }
 
-        var input: String?
-        while (true) {
-            input = readlnOrNull()
-            if (input.equals("stop", ignoreCase = true)) {
-                event.jda.shutdown()
-                logger.info("て い し")
-                exitProcess(0)
+    private fun loadData() {
+        if (dataFile.exists()) {
+            val jsonString = dataFile.readText()
+            val json = JSONObject(jsonString)
+            val pointsJson = json.getJSONObject("points")
+
+            points.clear()
+            for (userId in pointsJson.keySet()) {
+                val point = pointsJson.getInt(userId)
+                points[userId] = point
             }
         }
     }
 
+    private fun saveData() {
+        val json = JSONObject()
+        val pointsJson = JSONObject()
+
+        for ((userId, point) in points) {
+            pointsJson.put(userId, point)
+        }
+
+        json.put("points", pointsJson)
+
+        dataFile.writeText(json.toString())
+    }
+
+    //BOTが起動したら起動と出力
+    override fun onReady(event: ReadyEvent) {
+        logger.info("き ど う")
+        command()
+    }
+
+     @Suppress("UNREACHABLE_CODE")
+     private fun command() {
+         Thread {
+             val scanner = Scanner(System.`in`)
+             var line: String?
+             while (true) {
+                 line = scanner.nextLine()
+                 when (line) {
+                     "stop" -> {
+                         JDA.Status.SHUTDOWN
+                         exitProcess(0)
+                     }
+                     else -> {
+                         println("コマンドの文がおかしいです!")
+                     }
+                 }
+             }
+             scanner.close()
+         }.start()
+    }
+
+    override fun onShutdown(event: ShutdownEvent) {
+        saveData()
+        exitProcess(0)
+    }
+
     //メッセージ反応
     override fun onMessageReceived(event: MessageReceivedEvent) {
-        val content = event.message.contentDisplay
-        val channel = event.channel
+        if (!event.author.isBot) {
+            if (event.message.contentDisplay.startsWith("ぬ")) {
+                event.channel.sendMessage("ぬ").queue()
+                val authorId = event.message.author.id
+                points[authorId] = points.getOrDefault(authorId, 0) + 1
+                val range = (1..5)
+                when (range.random()) {
+                    1 -> { //1だったら「ぬぬ~」と送信する
+                        event.channel.sendMessage("ぬぬ~").queue()
+                    }
 
-        if (!event.author.isBot) when {
-            content.startsWith("ぬ") -> channel.sendMessage("ぬ").queue()
-            content.startsWithAnyOf(listOf(":nu:", ":snu:")) -> channel.sendMessage("<:nu:1101830335718752261>").queue()
-            content.startsWith("こん") && !content.startsWith("こんばんは") -> channel.sendMessage("こんにちは~").queue()
-            content.startsWith("おは") -> channel.sendMessage("おはよう!").queue()
-            content.startsWith("こんばんは") -> channel.sendMessage("こんばんは~").queue()
-            content.startsWith("おやすみ") -> channel.sendMessage("おやすみ~ Good night!").queue()
+                    2 -> { //2だったら「ぬ!」と送信する
+                        event.channel.sendMessage("ぬ!").queue()
+                    }
+
+                    3 -> { //3だったら「ぬ?」と送信する
+                        event.channel.sendMessage("ぬ?").queue()
+                    }
+
+                    4 -> { //4だったら「ぬ! ぬぬ」と送信する
+                        event.channel.sendMessage("ぬ!ぬぬ").queue()
+                    }
+
+                    5 -> { //5だったら「ぬ~ぬ~」と送信する
+                        event.channel.sendMessage("ぬ~ぬ~").queue()
+                    }
+                }
+            }
+            if (event.message.contentDisplay.startsWithAnyOf(listOf(":nu:", ":snu:"))) {
+                event.channel.sendMessage("<:nu:1101830335718752261>").queue()
+            }
+            if (event.message.contentDisplay.startsWith("こん") && !event.message.contentDisplay.startsWith("こんばんは")) {
+                event.channel.sendMessage("こんにちは~").queue()
+                val authorId = event.message.author.id
+                points[authorId] = points.getOrDefault(authorId, 0) + 1
+            }
+            if (event.message.contentDisplay.startsWith("おは")) {
+                event.channel.sendMessage("おはよう!").queue()
+            }
+            if (event.message.contentDisplay.startsWith("こんばんは")) {
+                event.channel.sendMessage("こんばんは~").queue()
+            }
+            if (event.message.contentDisplay.startsWith("おやすみ")) {
+                event.channel.sendMessage("おやすみ~ Good night!").queue()
+            }
         }
     }
 
@@ -116,6 +206,14 @@ class BotListener : ListenerAdapter() {
         val range = (1..max)
 
         event.reply("1d${max} -> ${range.random()}").queue()
+    }
+
+    private fun handleRankingCommand(event: SlashCommandInteractionEvent) {
+        val count = event.getOption("count")?.asLong ?: 10
+        val rankingEmbed = EmbedBuilder()
+            .setTitle("ランキング!")
+            .setColor(Color.GREEN)
+
     }
 
     //ここからモデレーターコマンド

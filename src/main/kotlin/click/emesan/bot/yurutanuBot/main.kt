@@ -52,6 +52,10 @@ class BotClient {
         val rollCommand = Commands.slash("roll", "ダイスを振ります。")
             .addOption(OptionType.INTEGER, "d0", "最大値", true)
 
+        // /ranking [limit] - ランキングを表示します。
+        val rankingCommand = Commands.slash("ranking", "ランキングを表示します。")
+            .addOptions(OptionData(OptionType.INTEGER, "limit", "表示する最大の数を出力します。"))
+
         //モデレーターコマンド
         // /announce <content> <to> - 通常のチャットでアナウンスをします。 <content>は内容 <to>はメンションをするロールを選びます。
         val announceCommand = Commands.slash("announce", "アナウンスをします。")
@@ -95,6 +99,7 @@ class BotClient {
             .addCommands(
                 thisHelpCommand,
                 sayCommand,
+                rankingCommand,
                 announceCommand,
                 embedAnnounceCommand,
                 kickCommand,
@@ -113,7 +118,8 @@ fun readTokenFromFile(filePath: String): String {
 fun main() {
     val logger: Logger = LogManager.getLogger(BotClient::class.java)
     val bot = BotClient()
-    val token = readTokenFromFile("src/main/resources/TOKEN.txt")
+    //val token = readTokenFromFile("src/main/resources/TOKEN.txt")
+    val token = System.getenv("botToken")
     logger.info("トークンの設定完了")
     bot.main(token)
 }

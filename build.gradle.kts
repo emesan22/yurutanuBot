@@ -2,6 +2,7 @@ plugins {
     kotlin("jvm") version "1.8.0"
     application
     id("com.github.johnrengelman.shadow") version "7.0.0"
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.5.21"
 }
 
 group = "click.emesan.bot"
@@ -18,6 +19,8 @@ dependencies {
     implementation("org.apache.logging.log4j:log4j-api:2.20.0")
     implementation("org.apache.logging.log4j:log4j-core:2.20.0")
     implementation("com.google.code.gson:gson:2.10.1")
+    implementation("org.json:json:20230227")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.2")
 }
 
 tasks.register("stage"){
