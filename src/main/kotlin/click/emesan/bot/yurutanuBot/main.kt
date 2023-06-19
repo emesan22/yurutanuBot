@@ -22,7 +22,12 @@ class BotClient {
     }
 
     fun main(token: String) { //トークンを使ってBotを起動する部分
-        jda = JDABuilder.createLight(token, GatewayIntent.GUILD_MESSAGES, GatewayIntent.MESSAGE_CONTENT)
+        jda = JDABuilder.createLight(
+            token,
+            GatewayIntent.GUILD_MESSAGES,
+            GatewayIntent.MESSAGE_CONTENT,
+            GatewayIntent.GUILD_MESSAGE_REACTIONS,
+        )
             .setRawEventsEnabled(true)
             .addEventListeners(BotListener())
             .setActivity(Activity.playing("お前らチャンネル登録しろ"))

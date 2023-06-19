@@ -59,25 +59,26 @@ class BotListener : ListenerAdapter() {
         command()
     }
 
-     @Suppress("UNREACHABLE_CODE")
-     private fun command() {
-         Thread {
-             val scanner = Scanner(System.`in`)
-             var line: String?
-             while (true) {
-                 line = scanner.nextLine()
-                 when (line) {
-                     "stop" -> {
-                         JDA.Status.SHUTDOWN
-                         exitProcess(0)
-                     }
-                     else -> {
-                         println("コマンドの文がおかしいです!")
-                     }
-                 }
-             }
-             scanner.close()
-         }.start()
+    @Suppress("UNREACHABLE_CODE")
+    private fun command() {
+        Thread {
+            val scanner = Scanner(System.`in`)
+            var line: String?
+            while (true) {
+                line = scanner.nextLine()
+                when (line) {
+                    "stop" -> {
+                        JDA.Status.SHUTDOWN
+                        exitProcess(0)
+                    }
+
+                    else -> {
+                        println("コマンドの文がおかしいです!")
+                    }
+                }
+            }
+            scanner.close()
+        }.start()
     }
 
     override fun onShutdown(event: ShutdownEvent) {
@@ -119,7 +120,7 @@ class BotListener : ListenerAdapter() {
         }
     }
 
-    private fun replayNu(event: MessageReceivedEvent){
+    private fun replayNu(event: MessageReceivedEvent) {
         if (event.message.contentDisplay.startsWith("ぬ")) {
             event.channel.sendMessage("ぬ").queue()
             val authorId = event.message.author.id
