@@ -5,6 +5,7 @@ import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.emoji.Emoji
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent
 import net.dv8tion.jda.api.events.session.ReadyEvent
 import net.dv8tion.jda.api.events.session.ShutdownEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
@@ -87,15 +88,34 @@ class BotListener : ListenerAdapter() {
     //メッセージ反応
     override fun onMessageReceived(event: MessageReceivedEvent) {
         if (!event.author.isBot) {
-            tubuyaki(event)
+            tubuyakiReaction(event)
             replayNu(event)
         }
     }
 
-    private fun tubuyaki(event: MessageReceivedEvent){
-        if (event.channel.id == "1119928574825205820"){
+    override fun onMessageReactionAdd(event: MessageReactionAddEvent) {
+        if (event.channel.id == "1119928574825205820" && event.reaction.emoji == Emoji.fromUnicode("💬")) {
+            event.reaction.retrieveUsers().queue { users ->
+                val count = users.size
+                if (count >= 2) tubuyakiStartThread(event)
+            }
+        }
+    }
+
+    private fun tubuyakiReaction(event: MessageReceivedEvent) {
+        if (event.channel.id == "1119928574825205820") {
             event.message.addReaction(Emoji.fromUnicode("💬")).queue()
             event.message.addReaction(Emoji.fromUnicode("❤️")).queue()
+        }
+    }
+
+    private fun tubuyakiStartThread(event: MessageReactionAddEvent) {
+        val reaction = event.reaction
+        event.channel.removeReactionById(reaction.messageId, Emoji.fromUnicode("💬")).queue()
+        event.channel.retrieveMessageById(event.messageId).queue { message ->
+            val user = message.author.name
+            event.guild.getTextChannelById(event.channel.id)?.createThreadChannel("${user}のつぶやきスレッド", event.messageId)
+                ?.queue()
         }
     }
 
