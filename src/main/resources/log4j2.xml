@@ -4,7 +4,7 @@
 
     <!-- Propertiesは、nameの値を変数として使える -->
     <Properties>
-        <Property name="format1">%d{yyyy/MM/dd HH:mm:ss.SSS} [%t] %-6p %c{10} %m%n</Property>
+        <Property name="format1">%d{HH:mm:ss.SSS} [%t] %-6p %c{1} %m%n</Property>
         <!-- ログのフォーマット
             %dは日時。{}に日時の形式を指定
             %tはスレッド名

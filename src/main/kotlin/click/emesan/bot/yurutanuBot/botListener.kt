@@ -1,19 +1,24 @@
 package click.emesan.bot.yurutanuBot
 
 import net.dv8tion.jda.api.EmbedBuilder
-import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.emoji.Emoji
+import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent
 import net.dv8tion.jda.api.events.session.ReadyEvent
 import net.dv8tion.jda.api.events.session.ShutdownEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
+import net.dv8tion.jda.api.interactions.components.ActionRow
+import net.dv8tion.jda.api.interactions.components.text.TextInput
+import net.dv8tion.jda.api.interactions.components.text.TextInputStyle
+import net.dv8tion.jda.api.interactions.modals.Modal
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.json.JSONObject
 import java.awt.Color
 import java.io.File
-import java.util.*
 import kotlin.system.exitProcess
 
 class BotListener : ListenerAdapter() {
@@ -55,28 +60,6 @@ class BotListener : ListenerAdapter() {
     //BOTが起動したら起動と出力
     override fun onReady(event: ReadyEvent) {
         logger.info("き ど う")
-        command()
-    }
-
-     @Suppress("UNREACHABLE_CODE")
-     private fun command() {
-         Thread {
-             val scanner = Scanner(System.`in`)
-             var line: String?
-             while (true) {
-                 line = scanner.nextLine()
-                 when (line) {
-                     "stop" -> {
-                         JDA.Status.SHUTDOWN
-                         exitProcess(0)
-                     }
-                     else -> {
-                         println("コマンドの文がおかしいです!")
-                     }
-                 }
-             }
-             scanner.close()
-         }.start()
     }
 
     override fun onShutdown(event: ShutdownEvent) {
@@ -84,66 +67,98 @@ class BotListener : ListenerAdapter() {
         exitProcess(0)
     }
 
+    //入退室通知
+    override fun onGuildMemberJoin(event: GuildMemberJoinEvent) {
+        val embed = EmbedBuilder()
+            .setAuthor("${event.member.effectiveName}がサーバーに参加しました!", null, event.member.effectiveAvatarUrl)
+            .setColor(Color.GREEN)
+            .build()
+        event.guild.getTextChannelById("1122304483154726932")?.sendMessageEmbeds(embed)!!.queue()
+    }
+
+    override fun onGuildMemberRemove(event: GuildMemberRemoveEvent) {
+        val message = "<:__:1122315507236868176> ${event.member?.user?.name}が退出しました"
+        event.guild.getTextChannelById("1122304483154726932")?.sendMessage(message)?.queue()
+    }
+
     //メッセージ反応
     override fun onMessageReceived(event: MessageReceivedEvent) {
         if (!event.author.isBot) {
-            tubuyaki(event)
+            tubuyakiReaction(event)
             replayNu(event)
         }
     }
 
-    private fun tubuyaki(event: MessageReceivedEvent){
-        if (event.channel.id == "1119928574825205820"){
+    override fun onMessageReactionAdd(event: MessageReactionAddEvent) {
+        if (event.channel.id == "1119928574825205820" && event.reaction.emoji == Emoji.fromUnicode("💬")) {
+            event.reaction.retrieveUsers().queue { users ->
+                val count = users.size
+                if (count >= 2) tubuyakiStartThread(event)
+            }
+        }
+    }
+
+    private fun tubuyakiReaction(event: MessageReceivedEvent) {
+        if (event.channel.id == "1119928574825205820") {
             event.message.addReaction(Emoji.fromUnicode("💬")).queue()
             event.message.addReaction(Emoji.fromUnicode("❤️")).queue()
         }
     }
 
+    private fun tubuyakiStartThread(event: MessageReactionAddEvent) {
+        val reaction = event.reaction
+        event.channel.removeReactionById(reaction.messageId, Emoji.fromUnicode("💬")).queue()
+        event.channel.retrieveMessageById(event.messageId).queue { message ->
+            val user = message.author.name
+            event.guild.getTextChannelById(event.channel.id)?.createThreadChannel("${user}のつぶやきスレッド", event.messageId)
+                ?.queue()
+        }
+    }
+
     private fun replayNu(event: MessageReceivedEvent){
-        if (event.message.contentDisplay.startsWith("ぬ")) {
-            event.channel.sendMessage("ぬ").queue()
+        if (event.startWithMessage("ぬ")) {
             val authorId = event.message.author.id
             points[authorId] = points.getOrDefault(authorId, 0) + 1
-            val range = (1..5)
-            when (range.random()) {
-                1 -> { //1だったら「ぬぬ~」と送信する
-                    event.channel.sendMessage("ぬぬ~").queue()
-                }
-
-                2 -> { //2だったら「ぬ!」と送信する
-                    event.channel.sendMessage("ぬ!").queue()
-                }
-
-                3 -> { //3だったら「ぬ?」と送信する
-                    event.channel.sendMessage("ぬ?").queue()
-                }
-
-                4 -> { //4だったら「ぬ! ぬぬ」と送信する
-                    event.channel.sendMessage("ぬ!ぬぬ").queue()
-                }
-
-                5 -> { //5だったら「ぬ~ぬ~」と送信する
-                    event.channel.sendMessage("ぬ~ぬ~").queue()
-                }
-            }
+            event.sendMessage(arrayOf("ぬぬ~", "ぬ!", "ぬ?", "ぬ!ぬぬ", "ぬ~ぬ~"))
         }
-        if (event.message.contentDisplay.startsWithAnyOf(listOf(":nu:", ":snu:"))) {
-            event.channel.sendMessage("<:nu:1101830335718752261>").queue()
+        if (event.startWithMessage(arrayOf(":nu:", ":snu:"))) {
+            event.sendMessage("<:nu:1101830335718752261>")
         }
-        if (event.message.contentDisplay.startsWith("こん") && !event.message.contentDisplay.startsWith("こんばんは")) {
-            event.channel.sendMessage("こんにちは~").queue()
+        if (event.startWithMessage("こん") && !event.startWithMessage("こんばんは")) {
+            event.sendMessage("こんにちは~")
             val authorId = event.message.author.id
             points[authorId] = points.getOrDefault(authorId, 0) + 1
         }
-        if (event.message.contentDisplay.startsWith("おは")) {
-            event.channel.sendMessage("おはよう!").queue()
+        if (event.startWithMessage("おは")) {
+            event.sendMessage("おはよう!")
         }
-        if (event.message.contentDisplay.startsWith("こんばんは")) {
-            event.channel.sendMessage("こんばんは~").queue()
+        if (event.startWithMessage("こんばんは")) {
+            event.sendMessage("こんばんは~")
         }
-        if (event.message.contentDisplay.startsWith("おやすみ")) {
-            event.channel.sendMessage("おやすみ~ Good night!").queue()
+        if (event.startWithMessage("おやすみ")) {
+            event.sendMessage("おやすみ~ Good night!")
         }
+    }
+
+    //メッセージを送信するための物
+    private fun MessageReceivedEvent.sendMessage(message: String) {
+        channel.sendMessage(message).queue()
+        return
+    }
+
+    private fun MessageReceivedEvent.sendMessage(message: Array<String>) {
+        val indexN = (message.indices).random()
+        channel.sendMessage(message[indexN]).queue()
+        return
+    }
+
+    private fun MessageReceivedEvent.startWithMessage(messagePrefix: String): Boolean {
+        return message.contentDisplay.startsWith(messagePrefix)
+    }
+
+    private fun MessageReceivedEvent.startWithMessage(listMessagePrefix: Array<String>): Boolean {
+        val indexN = (listMessagePrefix.indices).random()
+        return message.contentDisplay.startsWith(listMessagePrefix[indexN])
     }
 
     //コマンド処理
@@ -168,6 +183,16 @@ class BotListener : ListenerAdapter() {
 
             "ban" -> {
                 reply("実装準備中").setEphemeral(true).queue()
+            }
+
+            //鯖整備用
+            "setanofgauh" -> {
+
+            }
+            //テスト
+
+            "testconection" -> {
+                testModmail(event)
             }
         }
     }
@@ -267,6 +292,10 @@ class BotListener : ListenerAdapter() {
         logger.info("メンション先:$to タイトル:$title \n内容:$description")
     }
 
+    private fun handleCreateMethod(event: SlashCommandInteractionEvent){
+
+    }
+
     /*
     private fun handleKickCommand(event: SlashCommandInteractionEvent) {
     // kickコマンドの処理
@@ -278,6 +307,21 @@ class BotListener : ListenerAdapter() {
     // ...
     }
     */
+
+    // テスト
+    private fun testModmail(event: SlashCommandInteractionEvent) {
+        val content = TextInput.create("content", "何をされましたか?\n証拠はスレッドで出してください。", TextInputStyle.PARAGRAPH)
+            .setPlaceholder("〇〇が私の家に盗みました...")
+            .setMinLength(3)
+            .setMaxLength(2000)
+            .build()
+
+        val modol = Modal.create("arasi","荒し報告")
+            .addComponents(ActionRow.of(content))
+            .build()
+
+        event.replyModal(modol).queue()
+    }
 
     // startsWithAnyOf 関数の実装
     private fun String.startsWithAnyOf(prefixes: List<String>): Boolean {

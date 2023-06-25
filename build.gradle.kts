@@ -21,6 +21,7 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("org.json:json:20230227")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.2")
+    implementation("ch.qos.logback:logback-classic:1.2.8")
 }
 
 tasks.register("stage"){
