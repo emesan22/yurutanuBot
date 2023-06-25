@@ -8,7 +8,6 @@ import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
-import net.dv8tion.jda.api.interactions.commands.build.SubcommandData
 import net.dv8tion.jda.api.requests.GatewayIntent
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
@@ -26,13 +25,14 @@ class BotClient {
             token,
             GatewayIntent.GUILD_MESSAGES,
             GatewayIntent.MESSAGE_CONTENT,
+            GatewayIntent.GUILD_MESSAGE_REACTIONS,
             GatewayIntent.GUILD_MEMBERS
         )
             .setRawEventsEnabled(true)
             .addEventListeners(BotListener())
-            .addEventListeners(reportListener())
             .setActivity(Activity.playing("お前らチャンネル登録しろ"))
             .build()
+
         jda.awaitReady()
 
         val guild = jda.getGuildById(GUILD_ID)!!
@@ -93,15 +93,6 @@ class BotClient {
                 OptionData(OptionType.STRING, "reason", "BANする理由(DMに送られます。)", true)
             )
             .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.BAN_MEMBERS))
-
-
-        // テスト用
-        val testConectionCommand = Commands.slash("testconection", "テストです!")
-            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MANAGE_SERVER))
-        val testSub1comannd = SubcommandData("and", "this is jfia")
-        val testComandajnmfa = Commands.slash("test", "test").addSubcommands(testSub1comannd)
-            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MANAGE_SERVER))
-
         logger.info("すべてのコマンドの定義を終わりました。")
 
         guild.updateCommands().queue() //コマンドを一時リセット
@@ -117,9 +108,7 @@ class BotClient {
                 embedAnnounceCommand,
                 kickCommand,
                 banCommand,
-                rollCommand,
-                testConectionCommand,
-                testComandajnmfa
+                rollCommand
             ).queue()
         logger.info("コマンドをセットしました。")
     }
