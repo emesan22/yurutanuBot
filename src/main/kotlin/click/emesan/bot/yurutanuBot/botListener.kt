@@ -16,46 +16,11 @@ import net.dv8tion.jda.api.interactions.components.text.TextInputStyle
 import net.dv8tion.jda.api.interactions.modals.Modal
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import org.json.JSONObject
 import java.awt.Color
-import java.io.File
 import kotlin.system.exitProcess
 
 class BotListener : ListenerAdapter() {
     private val logger: Logger = LogManager.getLogger(BotClient::class.java)
-    private val points: HashMap<String, Int> = HashMap()
-    private val dataFile: File = File("src/main/resources/point.json")
-
-    init {
-        loadData()
-    }
-
-    private fun loadData() {
-        if (dataFile.exists()) {
-            val jsonString = dataFile.readText()
-            val json = JSONObject(jsonString)
-            val pointsJson = json.getJSONObject("points")
-
-            points.clear()
-            for (userId in pointsJson.keySet()) {
-                val point = pointsJson.getInt(userId)
-                points[userId] = point
-            }
-        }
-    }
-
-    private fun saveData() {
-        val json = JSONObject()
-        val pointsJson = JSONObject()
-
-        for ((userId, point) in points) {
-            pointsJson.put(userId, point)
-        }
-
-        json.put("points", pointsJson)
-
-        dataFile.writeText(json.toString())
-    }
 
     //BOTが起動したら起動と出力
     override fun onReady(event: ReadyEvent) {
@@ -63,7 +28,6 @@ class BotListener : ListenerAdapter() {
     }
 
     override fun onShutdown(event: ShutdownEvent) {
-        saveData()
         exitProcess(0)
     }
 
@@ -115,10 +79,8 @@ class BotListener : ListenerAdapter() {
         }
     }
 
-    private fun replayNu(event: MessageReceivedEvent){
+    private fun replayNu(event: MessageReceivedEvent) {
         if (event.startWithMessage("ぬ")) {
-            val authorId = event.message.author.id
-            points[authorId] = points.getOrDefault(authorId, 0) + 1
             event.sendMessage(arrayOf("ぬぬ~", "ぬ!", "ぬ?", "ぬ!ぬぬ", "ぬ~ぬ~"))
         }
         if (event.startWithMessage(arrayOf(":nu:", ":snu:"))) {
@@ -126,8 +88,6 @@ class BotListener : ListenerAdapter() {
         }
         if (event.startWithMessage("こん") && !event.startWithMessage("こんばんは")) {
             event.sendMessage("こんにちは~")
-            val authorId = event.message.author.id
-            points[authorId] = points.getOrDefault(authorId, 0) + 1
         }
         if (event.startWithMessage("おは")) {
             event.sendMessage("おはよう!")
@@ -246,14 +206,6 @@ class BotListener : ListenerAdapter() {
         event.reply("1d${max} -> ${range.random()}").queue()
     }
 
-    private fun handleRankingCommand(event: SlashCommandInteractionEvent) {
-        val count = event.getOption("count")?.asLong ?: 10
-        val rankingEmbed = EmbedBuilder()
-            .setTitle("ランキング!")
-            .setColor(Color.GREEN)
-
-    }
-
     //ここからモデレーターコマンド
     private fun handleAnnounceCommand(event: SlashCommandInteractionEvent) {
         // announceコマンドの処理
@@ -292,10 +244,6 @@ class BotListener : ListenerAdapter() {
         logger.info("メンション先:$to タイトル:$title \n内容:$description")
     }
 
-    private fun handleCreateMethod(event: SlashCommandInteractionEvent){
-
-    }
-
     /*
     private fun handleKickCommand(event: SlashCommandInteractionEvent) {
     // kickコマンドの処理
@@ -316,16 +264,10 @@ class BotListener : ListenerAdapter() {
             .setMaxLength(2000)
             .build()
 
-        val modol = Modal.create("arasi","荒し報告")
+        val modol = Modal.create("arasi", "荒し報告")
             .addComponents(ActionRow.of(content))
             .build()
 
         event.replyModal(modol).queue()
     }
-
-    // startsWithAnyOf 関数の実装
-    private fun String.startsWithAnyOf(prefixes: List<String>): Boolean {
-        return prefixes.any { this.startsWith(it) }
-    }
-
 }

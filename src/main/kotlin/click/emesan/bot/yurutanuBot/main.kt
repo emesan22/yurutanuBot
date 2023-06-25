@@ -12,7 +12,6 @@ import net.dv8tion.jda.api.interactions.commands.build.SubcommandData
 import net.dv8tion.jda.api.requests.GatewayIntent
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import java.io.File
 
 class BotClient {
     private lateinit var jda: JDA
@@ -23,7 +22,12 @@ class BotClient {
     }
 
     fun main(token: String) { //トークンを使ってBotを起動する部分
-        jda = JDABuilder.create(token, GatewayIntent.GUILD_MESSAGES, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MEMBERS)
+        jda = JDABuilder.create(
+            token,
+            GatewayIntent.GUILD_MESSAGES,
+            GatewayIntent.MESSAGE_CONTENT,
+            GatewayIntent.GUILD_MEMBERS
+        )
             .setRawEventsEnabled(true)
             .addEventListeners(BotListener())
             .addEventListeners(reportListener())
@@ -121,15 +125,9 @@ class BotClient {
     }
 }
 
-fun readTokenFromFile(filePath: String): String {
-    val tokenFile = File(filePath)
-    return tokenFile.readText().trim()
-}
-
 fun main() {
     val logger: Logger = LogManager.getLogger(BotClient::class.java)
     val bot = BotClient()
-    //val token = readTokenFromFile("src/main/resources/TOKEN.txt")
     val token = System.getenv("botToken")
     logger.info("トークンの設定完了")
     bot.main(token)
