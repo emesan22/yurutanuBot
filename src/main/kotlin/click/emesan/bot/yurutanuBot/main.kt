@@ -16,10 +16,6 @@ class BotClient {
     private lateinit var jda: JDA
     private val logger: Logger = LogManager.getLogger(BotClient::class.java)
 
-    companion object {
-        private const val GUILD_ID = "1099656854784712805"
-    }
-
     fun main(token: String) { //トークンを使ってBotを起動する部分
         jda = JDABuilder.create(
             token,
@@ -35,7 +31,7 @@ class BotClient {
 
         jda.awaitReady()
 
-        val guild = jda.getGuildById(GUILD_ID)!!
+        val guild = jda.getGuildById("1099656854784712805")!!
 
         // 登録するコマンドを作成
 
@@ -115,9 +111,6 @@ class BotClient {
 }
 
 fun main() {
-    val logger: Logger = LogManager.getLogger(BotClient::class.java)
-    val bot = BotClient()
     val token = System.getenv("botToken")
-    logger.info("トークンの設定完了")
-    bot.main(token)
+    BotClient().main(token)
 }
