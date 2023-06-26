@@ -5,7 +5,7 @@
   },
   "deploy": {
     "numReplicas": 1,
-    "startCommand": "java -jar build/libs/bot.jar -Xmx100m -Xms50m -XX:MaxRAM110m",
+    "startCommand": "java -jar build/libs/bot.jar -Xmx90m -Xms5m -XX:MaxRAM110m",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }
